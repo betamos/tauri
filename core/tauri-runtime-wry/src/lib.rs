@@ -414,6 +414,16 @@ impl std::fmt::Debug for NativeImageWrapper {
 }
 
 #[cfg(target_os = "macos")]
+fn to_wry_activation_policy(act_pol: ActivationPolicy) -> WryActivationPolicy {
+  match act_pol {
+    ActivationPolicy::Regular => WryActivationPolicy::Regular,
+    ActivationPolicy::Accessory => WryActivationPolicy::Accessory,
+    ActivationPolicy::Prohibited => WryActivationPolicy::Prohibited,
+    _ => unimplemented!(),
+  }
+}
+
+#[cfg(target_os = "macos")]
 impl From<NativeImage> for NativeImageWrapper {
   fn from(image: NativeImage) -> NativeImageWrapper {
     let wry_image = match image {
@@ -1048,6 +1058,8 @@ pub enum WindowMessage {
   ShowApplication,
   #[cfg(target_os = "macos")]
   HideApplication,
+  #[cfg(target_os = "macos")]
+  SetActivationPolicy(ActivationPolicy),
   Close,
   SetDecorations(bool),
   SetAlwaysOnTop(bool),
@@ -1403,6 +1415,20 @@ impl<T: UserEvent> Dispatch<T> for WryDispatcher<T> {
     send_user_message(
       &self.context,
       Message::Window(self.window_id, WindowMessage::HideApplication),
+    )
+  }
+
+  #[cfg(target_os = "macos")]
+  fn set_activation_policy_at_runtime(
+    &self,
+    activation_policy: ActivationPolicy,
+  ) -> crate::Result<()> {
+    send_user_message(
+      &self.context,
+      Message::Window(
+        self.window_id,
+        WindowMessage::SetActivationPolicy(activation_policy),
+      ),
     )
   }
 
@@ -1966,12 +1992,7 @@ impl<T: UserEvent> Runtime<T> for Wry<T> {
   fn set_activation_policy(&mut self, activation_policy: ActivationPolicy) {
     self
       .event_loop
-      .set_activation_policy(match activation_policy {
-        ActivationPolicy::Regular => WryActivationPolicy::Regular,
-        ActivationPolicy::Accessory => WryActivationPolicy::Accessory,
-        ActivationPolicy::Prohibited => WryActivationPolicy::Prohibited,
-        _ => unimplemented!(),
-      });
+      .set_activation_policy(to_wry_activation_policy(activation_policy));
   }
 
   fn run_iteration<F: FnMut(RunEvent<T>) + 'static>(&mut self, mut callback: F) -> RunIteration {
@@ -2335,6 +2356,10 @@ fn handle_user_message<T: UserEvent>(
             WindowMessage::ShowApplication => event_loop.show_application(),
             #[cfg(target_os = "macos")]
             WindowMessage::HideApplication => event_loop.hide_application(),
+            #[cfg(target_os = "macos")]
+            WindowMessage::SetActivationPolicy(act_pol) => {
+              event_loop.set_activation_policy_at_runtime(to_wry_activation_policy(act_pol))
+            }
             WindowMessage::Close => {
               panic!("cannot handle `WindowMessage::Close` on the main thread")
             }
