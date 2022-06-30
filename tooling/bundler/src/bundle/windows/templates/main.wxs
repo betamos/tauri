@@ -8,7 +8,8 @@
     <?error Unsupported value of sys.BUILDARCH=$(sys.BUILDARCH)?>
 <?endif?>
 
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+    xmlns:fire="http://schemas.microsoft.com/wix/FirewallExtension">
     <Product
             Id="*"
             Name="{{{product_name}}}"
@@ -116,7 +117,10 @@
             </Component>
             {{#each binaries as |bin| ~}}
             <Component Id="{{ bin.id }}" Guid="{{bin.guid}}" Win64="$(var.Win64)">
-                <File Id="Path_{{ bin.id }}" Source="{{bin.path}}" KeyPath="yes"/>
+                <File Id="Path_{{ bin.id }}" Source="{{bin.path}}" KeyPath="yes">
+                    <fire:FirewallException Id="PayloadAgentTCP" Name="Payload (TCP)" Profile="all" Protocol="tcp" Scope="any" IgnoreFailure="yes" />
+                    <fire:FirewallException Id="PayloadAgentUDP" Name="Payload (UDP)" Profile="all" Protocol="udp" Scope="any" IgnoreFailure="yes" />
+                </File>
             </Component>
             {{/each~}}
             {{#if enable_elevated_update_task}}

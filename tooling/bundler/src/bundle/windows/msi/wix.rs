@@ -308,6 +308,8 @@ fn run_candle(
     "-arch".to_string(),
     arch.to_string(),
     wxs_file_path.to_string_lossy().to_string(),
+    "-ext".to_string(),
+    "WixFirewallExtension".to_string(),
     format!(
       "-dSourceDir={}",
       settings.binary_path(main_binary).display()
@@ -340,6 +342,8 @@ fn run_light(
     "WixUIExtension".to_string(),
     "-ext".to_string(),
     "WixUtilExtension".to_string(),
+    "-ext".to_string(),
+    "WixFirewallExtension".to_string(),
     "-o".to_string(),
     output_path.display().to_string(),
   ];
