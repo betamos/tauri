@@ -514,6 +514,10 @@ impl<R: Runtime> Update<R> {
     on_chunk: C,
     on_download_finish: D,
   ) -> Result {
+    // Don't attempt installing if in dev mode
+    if cfg!(dev) {
+      return Err(Error::UnsupportedMode);
+    }
     // make sure we can install the update on linux
     // We fail here because later we can add more linux support
     // actually if we use APPIMAGE, our extract path should already

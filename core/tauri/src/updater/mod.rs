@@ -771,6 +771,13 @@ impl<R: Runtime> UpdateResponse<R> {
 pub(crate) async fn check_update_with_dialog<R: Runtime>(handle: AppHandle<R>) {
   let updater_config = handle.config().tauri.updater.clone();
   let package_info = handle.package_info().clone();
+
+  // If linux and not appimage (e.g. deb), don't prompt the user since we can't provide updates.
+  // The prompt is also enabled in dev mode to to exercise most of the updater code paths.
+  #[cfg(all(not(dev), target_os = "linux"))]
+  if handle.state::<tauri_utils::Env>().appimage.is_none() {
+    return;
+  }
   if let Some(endpoints) = updater_config.endpoints.clone() {
     let endpoints = endpoints
       .iter()

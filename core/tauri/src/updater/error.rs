@@ -44,6 +44,9 @@ pub enum Error {
   /// Updater cannot be executed on this Linux package. Currently the updater is enabled only on AppImages.
   #[error("Cannot run updater on this Linux package. Currently only an AppImage can be updated.")]
   UnsupportedLinuxPackage,
+  /// Updater cannot be executed in dev mode.
+  #[error("Cannot run updater in dev mode.")]
+  UnsupportedMode,
   /// Operating system is not supported.
   #[error("unsupported OS, expected one of `linux`, `darwin` or `windows`.")]
   UnsupportedOs,
